@@ -8,10 +8,12 @@ import cors from "cors";
 import bcrypt from "bcryptjs";
 import Database from "better-sqlite3";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
-const port = 4000;
-const JWT_SECRET = "your_secret_key_here";
+const port = process.env.PORT;
+const secret = process.env.JWT_SECRET;
 
 const db = new Database("progress.db");
 
@@ -82,7 +84,7 @@ function authenticate(req, res, next) {
 	}
 	try {
 		const token = authHeader.split(" ")[1];
-		const decoded = jwt.verify(token, JWT_SECRET);
+		const decoded = jwt.verify(token, secret);
 		req.user = { id: decoded.user_id }; // ✅ ensure consistent access
 		next();
 	} catch (err) {
@@ -162,7 +164,7 @@ app.post("/login", async (req, res) => {
 	const match = await bcrypt.compare(password, user.password);
 	if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
-	const token = jwt.sign({ user_id: user.id }, JWT_SECRET);
+	const token = jwt.sign({ user_id: user.id }, secret);
 	res.json({ token });
 });
 
@@ -298,7 +300,7 @@ app.get("/user/me", authenticate, (req, res) => {
 	try {
 		const user = db
 			.prepare(
-				"SELECT id, email, role, currentPara FROM users WHERE id = ?"
+				"SELECT id, full_name, email, role, currentPara FROM users WHERE id = ?"
 			)
 			.get(req.user.id);
 
@@ -306,6 +308,7 @@ app.get("/user/me", authenticate, (req, res) => {
 
 		res.json({
 			id: user.id,
+			full_name: user.full_name,
 			email: user.email,
 			role: user.role,
 			currentPara: user.currentPara || null,
@@ -358,35 +361,6 @@ app.get("/users", authenticate, (req, res) => {
 });
 
 // ------------------ para_surah APIs ------------------
-
-// app.get("/para_surah", authenticate, (req, res) => {
-// 	try {
-// 		const userId = req.user.id;
-// 		const rows = db
-// 			.prepare(
-// 				"SELECT para, surah, page, mistakes FROM para_surah WHERE user_id = ? ORDER BY para, page"
-// 			)
-// 			.all(userId);
-
-// 		const grouped = {};
-// 		for (const row of rows) {
-// 			const para = row.para.trim();
-// 			if (!grouped[para]) grouped[para] = [];
-// 			grouped[para].push({
-// 				surah: row.surah,
-// 				page: row.page,
-// 				mistakes: row.mistakes,
-// 			});
-// 		}
-
-// 		res.json(grouped);
-// 	} catch (err) {
-// 		res.status(500).json({
-// 			message: "Failed to fetch para_surah data",
-// 			error: err.message,
-// 		});
-// 	}
-// });
 
 app.get("/para_surah", authenticate, (req, res) => {
 	try {

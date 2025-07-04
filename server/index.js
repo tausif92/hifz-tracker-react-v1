@@ -20,9 +20,12 @@ const db = new Database("progress.db");
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		full_name TEXT NOT NULL,
 		email TEXT UNIQUE NOT NULL,
 		password TEXT NOT NULL,
-		currentPara TEXT
+		currentPara TEXT,
+		role TEXT DEFAULT 'user',
+		register_date TEXT NOT NULL
 	)`
 ).run();
 
@@ -88,7 +91,7 @@ function authenticate(req, res, next) {
 }
 
 app.post("/register", async (req, res) => {
-	const { email, password } = req.body;
+	const { fullName, email, password } = req.body;
 	try {
 		const existingUser = db
 			.prepare("SELECT * FROM users WHERE email = ?")
@@ -100,11 +103,21 @@ app.post("/register", async (req, res) => {
 			});
 		}
 		const hashed = await bcrypt.hash(password, 10);
+		const now = new Date().toLocaleString("en-IN", {
+			timeZone: "Asia/Kolkata",
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hour12: true,
+		});
 		const result = db
 			.prepare(
-				"INSERT INTO users (email, password, currentPara) VALUES (?, ?, ?)"
+				"INSERT INTO users (full_name, email, password, currentPara, register_date) VALUES (?, ?, ?, ?, ?)"
 			)
-			.run(email, hashed, defaultPara);
+			.run(fullName, email, hashed, defaultPara, now);
 
 		const userId = result.lastInsertRowid;
 
@@ -284,7 +297,9 @@ app.delete("/reset-all", authenticate, (req, res) => {
 app.get("/user/me", authenticate, (req, res) => {
 	try {
 		const user = db
-			.prepare("SELECT id, email, currentPara FROM users WHERE id = ?")
+			.prepare(
+				"SELECT id, email, role, currentPara FROM users WHERE id = ?"
+			)
 			.get(req.user.id);
 
 		if (!user) return res.status(401).json({ message: "User not found" });
@@ -292,6 +307,7 @@ app.get("/user/me", authenticate, (req, res) => {
 		res.json({
 			id: user.id,
 			email: user.email,
+			role: user.role,
 			currentPara: user.currentPara || null,
 		});
 	} catch (err) {
@@ -328,7 +344,9 @@ app.post("/user/updateCurrentPara", authenticate, (req, res) => {
 app.get("/users", authenticate, (req, res) => {
 	try {
 		const users = db
-			.prepare("SELECT id, email, currentPara FROM users")
+			.prepare(
+				"SELECT id, full_name, email, currentPara, role, register_date FROM users"
+			)
 			.all();
 		res.json(users);
 	} catch (err) {
@@ -493,6 +511,33 @@ app.get("/activities/grouped", (req, res) => {
 		console.error("GET /activities/grouped error:", err);
 		res.status(500).json({
 			message: "Failed to fetch activities",
+			error: err.message,
+		});
+	}
+});
+
+app.delete("/user/:id", authenticate, (req, res) => {
+	const userId = req.params.id;
+
+	try {
+		const stmt1 = db.prepare("DELETE FROM progress WHERE user_id = ?");
+		const result1 = stmt1.run(userId);
+		const stmt2 = db.prepare("DELETE FROM para_surah WHERE user_id = ?");
+		const result2 = stmt2.run(userId);
+		const stmt3 = db.prepare("DELETE FROM activity_log WHERE user_id = ?");
+		const result3 = stmt3.run(userId);
+		const stmt4 = db.prepare("DELETE FROM users WHERE id = ?");
+		const result4 = stmt4.run(userId);
+
+		// if (result.changes === 0) {
+		// 	return res.status(404).json({ message: "User not found" });
+		// }
+
+		res.json({ message: "User deleted successfully" });
+	} catch (err) {
+		console.error("Error deleting user:", err);
+		res.status(500).json({
+			message: "Internal server error",
 			error: err.message,
 		});
 	}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Drawer,
 	List,
@@ -21,13 +21,38 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import HomeIcon from "@mui/icons-material/Home";
+import PeopleIcon from "@mui/icons-material/People";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Sidebar = () => {
 	const [isOpen, setIsOpen] = useState(true);
+	const [userRole, setUserRole] = useState(null);
 	const drawerWidth = isOpen ? 220 : 64;
 	const location = useLocation();
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		const fetchUser = async () => {
+			try {
+				const token = localStorage.getItem("token");
+				const response = await axios.get(
+					"http://localhost:4000/user/me",
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
+				setUserRole(response.data.role);
+			} catch (error) {
+				console.error("Failed to fetch user role:", error);
+				setUserRole(null);
+			}
+		};
+
+		fetchUser();
+	}, []);
 
 	const toggleDrawer = () => {
 		setIsOpen(!isOpen);
@@ -38,14 +63,36 @@ const Sidebar = () => {
 		navigate("/login");
 	};
 
-	const navItems = [
-		{ link: "/", label: "HOME", icon: <HomeIcon /> },
-		{ link: "/dashboard", label: "DASHBOARD", icon: <DashboardIcon /> },
-		{ link: "/paraStatus", label: "PARA STATUS", icon: <AssessmentIcon /> },
-		{ link: "/revision", label: "UPDATE REVISION", icon: <UpdateIcon /> },
-		{ link: "/updateSabaq", label: "UPDATE SABAQ", icon: <BookIcon /> },
-		{ link: "/timeTaken", label: "PARA TIME", icon: <AccessTimeIcon /> },
-	];
+	const navItems = React.useMemo(() => {
+		const items = [
+			{ link: "/", label: "HOME", icon: <HomeIcon /> },
+			{ link: "/dashboard", label: "DASHBOARD", icon: <DashboardIcon /> },
+			{
+				link: "/paraStatus",
+				label: "PARA STATUS",
+				icon: <AssessmentIcon />,
+			},
+			{
+				link: "/revision",
+				label: "UPDATE REVISION",
+				icon: <UpdateIcon />,
+			},
+			{ link: "/updateSabaq", label: "UPDATE SABAQ", icon: <BookIcon /> },
+			{
+				link: "/timeTaken",
+				label: "PARA TIME",
+				icon: <AccessTimeIcon />,
+			},
+		];
+		if (userRole === "admin") {
+			items.push({
+				link: "/users",
+				label: "USERS",
+				icon: <PeopleIcon />,
+			});
+		}
+		return items;
+	}, [userRole]);
 
 	return (
 		<Drawer
@@ -106,7 +153,6 @@ const Sidebar = () => {
 				<List>
 					{navItems.map((item) => {
 						const isActive = location.pathname === item.link;
-
 						return (
 							<Tooltip
 								title={!isOpen ? item.label : ""}

@@ -10,12 +10,14 @@ import {
 	Link,
 	Container,
 	IconButton,
+	Snackbar,
 } from "@mui/material";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 
 function RegisterPage() {
+	const [fullName, setFullName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,6 +26,7 @@ function RegisterPage() {
 	const [isFormValid, setIsFormValid] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
+	const [showSuccess, setShowSuccess] = useState(false);
 	const navigate = useNavigate();
 
 	// 🚀 Redirect to dashboard if already logged in
@@ -36,6 +39,10 @@ function RegisterPage() {
 
 	const validateForm = () => {
 		const errors = {};
+
+		if (!fullName) {
+			errors.fullName = "Full name is required";
+		}
 
 		if (!email.trim()) {
 			errors.email = "Email is required";
@@ -61,7 +68,7 @@ function RegisterPage() {
 
 	useEffect(() => {
 		validateForm();
-	}, [email, password, confirmPassword]);
+	}, [fullName, email, password, confirmPassword]);
 
 	const handleBlur = (field) => {
 		setTouched((prev) => ({ ...prev, [field]: true }));
@@ -70,7 +77,12 @@ function RegisterPage() {
 	const handleRegister = async (e) => {
 		e.preventDefault();
 		setError("");
-		setTouched({ email: true, password: true, confirmPassword: true });
+		setTouched({
+			fullName: true,
+			email: true,
+			password: true,
+			confirmPassword: true,
+		});
 
 		if (!isFormValid) return;
 
@@ -79,13 +91,18 @@ function RegisterPage() {
 			const res = await fetch("http://localhost:4000/register", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, password }),
+				body: JSON.stringify({ fullName, email, password }),
 			});
 
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.message || "Registration failed");
+			// ✅ Show success message
+			setShowSuccess(true);
 
-			navigate("/login");
+			// ✅ Redirect after a short delay
+			setTimeout(() => {
+				navigate("/login");
+			}, 3000);
 		} catch (err) {
 			setError(err.message);
 		} finally {
@@ -103,7 +120,7 @@ function RegisterPage() {
 						justifyContent: "space-between",
 						alignItems: "center",
 						mb: 6, // Increased margin bottom
-						pt: 3,
+						pt: 2,
 						position: "relative",
 					}}
 				>
@@ -174,7 +191,7 @@ function RegisterPage() {
 						mt: 8, // Added margin top to move form down
 					}}
 				>
-					<Paper elevation={3} sx={{ padding: 4, width: 320 }}>
+					<Paper elevation={3} sx={{ padding: 3, width: 320 }}>
 						<Typography variant='h5' textAlign='center' mb={3}>
 							Register
 						</Typography>
@@ -186,6 +203,22 @@ function RegisterPage() {
 						)}
 
 						<form onSubmit={handleRegister}>
+							<TextField
+								fullWidth
+								label='Full Name'
+								type='text'
+								value={fullName}
+								onChange={(e) => setFullName(e.target.value)}
+								onBlur={() => handleBlur("fullName")}
+								error={
+									touched.fullName && !!formErrors.fullName
+								}
+								helperText={
+									touched.fullName && formErrors.fullName
+								}
+								margin='normal'
+								required
+							/>
 							<TextField
 								fullWidth
 								label='Email'
@@ -276,6 +309,16 @@ function RegisterPage() {
 					</Paper>
 				</Box>
 			</Container>
+			<Snackbar
+				open={showSuccess}
+				autoHideDuration={3000}
+				onClose={() => setShowSuccess(false)}
+				anchorOrigin={{ vertical: "top", horizontal: "center" }}
+			>
+				<Alert severity='info' variant='filled' sx={{ width: "100%" }}>
+					Registration successful! Login to continue...
+				</Alert>
+			</Snackbar>
 		</Box>
 	);
 }

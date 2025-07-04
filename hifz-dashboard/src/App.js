@@ -5,6 +5,7 @@ import RevisionPage from "./components/RevisionPage/RevisionPage";
 import ActivityPage from "./components/TimeTakenPage/ActivityPage";
 import UpdateForm from "./components/UpdateSabaqPage/UpdateSabaqPage";
 import LoginPage from "./pages/LoginPage";
+import UsersPage from "./pages/UsersPage";
 import PrivateRoute from "./components/Auth/PrivateRoute";
 
 import useProgressData from "./BackendCalls/GetProgress";
@@ -81,6 +82,14 @@ function App() {
 									totalPages={currentParaTotalPages}
 									currentProgress={currentParaProgress}
 								/>
+							</PrivateRoute>
+						}
+					/>
+					<Route
+						path='/users'
+						element={
+							<PrivateRoute>
+								<UsersPage />
 							</PrivateRoute>
 						}
 					/>

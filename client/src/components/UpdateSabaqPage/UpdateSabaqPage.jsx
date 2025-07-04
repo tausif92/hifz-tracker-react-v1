@@ -27,6 +27,8 @@ import useProgressData from "../../BackendCalls/GetProgress";
 import { getUserDetails, updateCurrentPara } from "../../BackendCalls/User";
 import dayjs from "dayjs";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const UpdateForm = () => {
 	const navigate = useNavigate();
 	const { currentPara, setCurrentPara } = useGlobalContext();
@@ -96,7 +98,7 @@ const UpdateForm = () => {
 			const token = localStorage.getItem("token");
 
 			await axios.post(
-				"http://localhost:4000/progress",
+				`${API_URL}/progress`,
 				{
 					para: selectedPara,
 					completed_pages: numericValue,
@@ -126,7 +128,7 @@ const UpdateForm = () => {
 	const handleResetAll = async () => {
 		try {
 			const token = localStorage.getItem("token");
-			await axios.delete("http://localhost:4000/reset-all", {
+			await axios.delete(`${API_URL}/reset-all`, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
 			await updateCurrentPara("Para 30");

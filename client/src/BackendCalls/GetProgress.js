@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/progress";
+const API_URL = process.env.REACT_APP_API_URL;
 
 export default function useProgressData() {
 	const [progress, setProgress] = useState([]);
@@ -11,12 +11,12 @@ export default function useProgressData() {
 		const fetchProgress = async () => {
 			try {
 				const token = localStorage.getItem("token");
-				const response = await axios.get(API_URL, {
+				const response = await axios.get(`${API_URL}/progress`, {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
 				});
-				console.log(response.data);
+				console.log("Progress data: ", response.data);
 				const formatted = response.data.map((item) => ({
 					para: item.para,
 					completed: item.completed_pages,

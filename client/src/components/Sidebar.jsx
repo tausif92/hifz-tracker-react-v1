@@ -25,26 +25,26 @@ import PeopleIcon from "@mui/icons-material/People";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
 const Sidebar = () => {
 	const [isOpen, setIsOpen] = useState(true);
 	const [userRole, setUserRole] = useState(null);
 	const drawerWidth = isOpen ? 220 : 64;
 	const location = useLocation();
 	const navigate = useNavigate();
+	const [userName, setUserName] = useState("");
 
 	useEffect(() => {
 		const fetchUser = async () => {
 			try {
 				const token = localStorage.getItem("token");
-				const response = await axios.get(
-					"http://localhost:4000/user/me",
-					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				);
+				const response = await axios.get(`${API_URL}/user/me`, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
 				setUserRole(response.data.role);
+				setUserName(response.data.full_name);
 			} catch (error) {
 				console.error("Failed to fetch user role:", error);
 				setUserRole(null);
@@ -150,6 +150,32 @@ const Sidebar = () => {
 					</IconButton>
 				</Toolbar>
 
+				<Box
+					sx={{
+						px: 2,
+						py: 2,
+						backgroundColor: "#e9f7ef",
+						borderRadius: "12px",
+						mx: 2,
+						mb: 1,
+						boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+						textAlign: "center",
+					}}
+				>
+					{isOpen && (
+						<Typography
+							variant='subtitle1'
+							sx={{
+								color: "#007e33",
+								fontWeight: "bold",
+								fontSize: "1rem",
+							}}
+						>
+							Hi {userName},
+						</Typography>
+					)}
+				</Box>
+
 				<List>
 					{navItems.map((item) => {
 						const isActive = location.pathname === item.link;
@@ -215,6 +241,8 @@ const Sidebar = () => {
 					})}
 				</List>
 			</Box>
+
+			{/* Display user full name */}
 
 			{/* Logout Button at Bottom */}
 			<Box>

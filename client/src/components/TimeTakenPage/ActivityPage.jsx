@@ -25,9 +25,12 @@ import {
 } from "@mui/material";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import Sidebar from "../Sidebar";
+import { getUserDetails } from "../../BackendCalls/User"; // New API to get current user
 
 dayjs.extend(duration);
 dayjs.extend(isSameOrBefore);
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const formatDate = (dateStr, withTime = false) => {
 	if (!dateStr) return "—";
@@ -56,9 +59,11 @@ const getDurationInYearsMonthsDays = (start, end) => {
 	].join(", ");
 };
 
+const user = await getUserDetails();
+
 const ActivityPage = () => {
 	const [activityData, setActivityData] = useState([]);
-	const [selectedPara, setSelectedPara] = useState("");
+	const [selectedPara, setSelectedPara] = useState(user.currentPara);
 	const [refreshFlag, setRefreshFlag] = useState(false);
 
 	const allParas = Array.from({ length: 30 }, (_, i) => `Para ${i + 1}`);
@@ -67,7 +72,7 @@ const ActivityPage = () => {
 	const fetchData = async () => {
 		try {
 			const activityRes = await axios.get(
-				"http://localhost:4000/activities/grouped",
+				`${API_URL}/activities/grouped`,
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
 			setActivityData(activityRes.data);

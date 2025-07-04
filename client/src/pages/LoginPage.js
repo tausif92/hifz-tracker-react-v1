@@ -15,6 +15,8 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import HomeIcon from "@mui/icons-material/Home";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -64,7 +66,7 @@ function LoginPage() {
 		setError("");
 
 		try {
-			const res = await fetch("http://localhost:4000/login", {
+			const res = await fetch(`${API_URL}/login`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password }),

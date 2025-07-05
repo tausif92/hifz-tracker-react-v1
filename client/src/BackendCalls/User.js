@@ -3,6 +3,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 export const getUserDetails = async () => {
 	const token = localStorage.getItem("token");
+	if (!token) return;
 	const res = await axios.get(`${API_URL}/user/me`, {
 		headers: {
 			Authorization: `Bearer ${token}`,
@@ -19,4 +20,3 @@ export const updateCurrentPara = async (para) => {
 		{ headers: { Authorization: `Bearer ${token}` } }
 	);
 };
-

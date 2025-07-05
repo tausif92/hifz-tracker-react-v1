@@ -30,6 +30,8 @@ import Sidebar from "../Sidebar";
 import axios from "axios";
 import EditIcon from "@mui/icons-material/Edit";
 import { InputAdornment } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const getAuthHeaders = () => {
@@ -202,11 +204,7 @@ const RevisionPage = () => {
 			}
 		}
 		axios
-			.post(
-				`${API_URL}/para_surah`,
-				flattened,
-				getAuthHeaders()
-			)
+			.post(`${API_URL}/para_surah`, flattened, getAuthHeaders())
 			.then(() => {
 				setOriginalData(JSON.parse(JSON.stringify(data)));
 				setShowSuccess(true);
@@ -411,90 +409,117 @@ const RevisionPage = () => {
 												<TableCell align='center'>
 													{row.page}
 												</TableCell>
-												{/* <TableCell align='center'>
-													<TextField
-														type='number'
-														variant='standard'
-														value={row.mistakes}
-														onChange={(e) =>
-															handleMistakeChange(
-																para,
-																idx,
-																e.target.value
-															)
-														}
-														inputProps={{
-															min: 0,
-															style: {
-																textAlign:
-																	"center",
-															},
-														}}
-														sx={{ width: 60 }}
-													/>
-												</TableCell> */}
-
 												<TableCell align='center'>
 													<Box
 														sx={{
+															display: "flex",
+															alignItems:
+																"center",
+															justifyContent:
+																"center",
+															gap: 1,
 															border: "1px solid #ccc",
-															borderRadius: "4px",
-															padding: "4px",
-															display:
-																"inline-block",
+															borderRadius: "8px",
+															px: 1,
+															py: 0.5,
+															boxShadow:
+																"0 1px 3px rgba(0,0,0,0.1)",
+															bgcolor: "#fafafa",
 															"&:hover": {
 																borderColor:
-																	"#999",
-															},
-															"&:focus-within": {
-																borderColor:
-																	"#1976d2",
-																boxShadow:
-																	"0 0 0 1px #1976d2",
+																	"#aaa",
 															},
 														}}
 													>
-														<TextField
-															type='number'
-															variant='outlined'
+														<IconButton
 															size='small'
+															onClick={() =>
+																handleMistakeChange(
+																	para,
+																	idx,
+																	Math.max(
+																		0,
+																		row.mistakes -
+																			1
+																	)
+																)
+															}
+															
+															sx={{
+																color: "#2e7d32",
+																"&:hover": {
+																	bgcolor:
+																		"#e8f5e9",
+																},
+															}}
+														>
+															<RemoveIcon fontSize='small' />
+														</IconButton>
+
+														<TextField
+															type='text'
+															variant='standard'
 															value={row.mistakes}
 															onChange={(e) =>
 																handleMistakeChange(
 																	para,
 																	idx,
-																	e.target
-																		.value
+																	parseInt(
+																		e.target
+																			.value
+																	) || 0
 																)
 															}
 															inputProps={{
-																min: 0,
 																style: {
 																	textAlign:
 																		"center",
 																	padding:
-																		"4px 8px",
+																		"4px 0",
+																	width: "30px",
+																	fontWeight: 500,
+																	fontSize:
+																		"1rem",
 																},
 															}}
 															sx={{
-																width: 100,
-																"& .MuiOutlinedInput-root":
+																input: {
+																	px: 0.5,
+																},
+																"& .MuiInput-underline:before":
 																	{
-																		"& fieldset":
-																			{
-																				border: "none",
-																			},
-																		"&:hover fieldset":
-																			{
-																				border: "none",
-																			},
-																		"&.Mui-focused fieldset":
-																			{
-																				border: "none",
-																			},
+																		borderBottom:
+																			"none",
+																	},
+																"& .MuiInput-underline:after":
+																	{
+																		borderBottom:
+																			"none",
 																	},
 															}}
 														/>
+
+														<IconButton
+															size='small'
+															onClick={() =>
+																handleMistakeChange(
+																	para,
+																	idx,
+																	row.mistakes +
+																		1
+																)
+															}
+															
+															sx={{
+																color: "#c62828",
+																"&:hover": {
+																	bgcolor:
+																		"#fdecea",
+																},
+															}}
+														>
+															<AddIcon fontSize='small' />
+														</IconButton>
 													</Box>
 												</TableCell>
 
